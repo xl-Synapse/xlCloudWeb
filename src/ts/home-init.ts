@@ -1,5 +1,6 @@
 import { apiGetListFiles, apiGetDownloadFile } from '@/apis/file-axios'
 import {config} from '@/config/config'
+import type {ImgDTO} from '@/ts/home-img'
 
 export interface FileDTO {
     path: string,
@@ -16,9 +17,16 @@ export interface GlobalReactive {
   fileDownloadDialog: boolean,
   nowFileIndex: number,
   win: any,
+  isPC: boolean,
+  isShowPics: boolean,
+  imgViewer: any,
+  imgList: ImgDTO[],
+  imgSrcListLazy: string[],
+  fileList: FileDTO[],
+  pathList: PathCache[],
 }
 
-export function initHome(path: string, fileList: FileDTO[], pathList: PathCache[], imgSrcList: string[], imgSrcListLazy: string[], options: any) {
+export function initHome(path: string, options: any, globalReactive: GlobalReactive) {
     // 更新 fileList
     apiGetListFiles(path).then((res) => {
         if (res.status != 200 || !res.data.success) {
@@ -27,9 +35,9 @@ export function initHome(path: string, fileList: FileDTO[], pathList: PathCache[
         }
 
         // 删除原有元素、
-        fileList.splice(0, fileList.length)
-        imgSrcList.splice(0, imgSrcList.length)
-        imgSrcListLazy.splice(0, imgSrcListLazy.length)
+        globalReactive.fileList.splice(0, globalReactive.fileList.length)
+        globalReactive.imgList.splice(0, globalReactive.imgList.length)
+        globalReactive.imgSrcListLazy.splice(0, globalReactive.imgSrcListLazy.length)
         
         // 遍历并加入、
         let tempFileList = (res.data.data as unknown as FileDTO[])
@@ -39,26 +47,29 @@ export function initHome(path: string, fileList: FileDTO[], pathList: PathCache[
         tempFileList.forEach((value) => {
           // 更新 imgSrcList
           if (value.type == 3) {
-            imgSrcList.push('http://' + config.serverUrl + ':' + config.serverPort + '/file/' + value.path)
+            globalReactive.imgList.push({
+              fileName: value.fileName,
+              src: 'http://' + config.serverUrl + ':' + config.serverPort + '/file/' + value.path
+            })
 
             // 添加占位 url、
-            imgSrcListLazy.push("")
+            globalReactive.imgSrcListLazy.push("")
           }
-          fileList.push(value)
+          globalReactive.fileList.push(value)
         })
 
-        fileList.sort((a, b) => a.type - b.type)
+        globalReactive.fileList.sort((a, b) => a.type - b.type)
       })
     
     // 更新 pathList
-    pathList.splice(0, pathList.length)
+    globalReactive.pathList.splice(0, globalReactive.pathList.length)
     let tempPathList = path.split("/")
     let tempPath: string = "/all"
     for (path of tempPathList) {
       // path = path
       tempPath = tempPath + "/" + path
       console.log("now = " + tempPath)
-      pathList.push({
+      globalReactive.pathList.push({
         fullPath: tempPath,
         path: path
       })
@@ -69,7 +80,14 @@ export function initHome(path: string, fileList: FileDTO[], pathList: PathCache[
 
 }
 
-export const onBack = (router: any, pathList: PathCache[]) => {
+export const onBack = (router: any, pathList: PathCache[], options: any) => {
+    // 如果正在播放视频、关闭视频不回退、
+    if (options.src != '') {
+      options.src = ''
+      return
+    }
+
+
     // notify('Back')
     if (pathList.length < 1) {
         return
@@ -84,4 +102,15 @@ export const onBack = (router: any, pathList: PathCache[]) => {
     // console.log("onback" + backPath)
     router.push( { path: backPath} )
     return
+  }
+
+
+  export const isPC = (win: any) => {
+    let flag = win.navigator.userAgent.match(
+      /(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i
+    );
+    if (flag) {
+      return false;
+    }
+    return true;
   }

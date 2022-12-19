@@ -58,4 +58,10 @@ export const downloadFile = (fileList: FileDTO[], index: number) => {
     }
     )
 }
-  
+
+
+const onPotplayerPlay = (index: number, fileList: FileDTO[], globalReactive: GlobalReactive) => {
+    let result = "potplayer://http://" + config.serverUrl + ":" + config.serverPort + '/video/' + encodeURI(fileList[index].path)
+    // result = "potplayer://http://" + config.serverUrl + ":" + config.serverPort + '/video/' + fileList[index].path
+    globalReactive.win.location.href = result
+  };

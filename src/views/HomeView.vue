@@ -7,8 +7,10 @@ import {videoPlay} from "vue3-video-play"
 import Cookies from 'js-cookie'
 
 import type { FileDTO, PathCache, GlobalReactive} from '@/ts/home-init'
-import {initHome, onBack} from '@/ts/home-init'
+import {initHome, onBack, isPC} from '@/ts/home-init'
 import {onClickdownloadFile, onConfirmDownload} from '@/ts/home-file'
+import {showPic, swichPic} from '@/ts/home-img'
+import type {ImgDTO} from '@/ts/home-img'
 import {config} from '@/config/config'
 import imgSrc from '@/assets/img.png'
 
@@ -17,14 +19,12 @@ import imgSrc from '@/assets/img.png'
 
 
 
-const fileList = reactive<FileDTO[]>([])
-const pathList = reactive<PathCache[]>([]) // 已访问路径、
-const imgSrcList = reactive<string[]>([]) // 预览图 src
-const imgSrcListLazy = reactive<string[]>([]) // 预览图 src
+// const fileList = reactive<FileDTO[]>([])
+// const pathList = reactive<PathCache[]>([]) // 已访问路径、
+
 
 const route = useRoute()
 const router = reactive(useRouter())
-const isShowPics: any = ref(false)
 
 const el_image_viewer: any = ref(null)
 // const fileDownloadDialog = ref(false) // 是否展示文件下载确认对话框、
@@ -34,11 +34,20 @@ const globalReactive = reactive<GlobalReactive>({
   fileDownloadDialog: false,
   nowFileIndex: 0,
   win: window,
+  isPC: isPC(window),
+  isShowPics: false,
+  imgViewer: el_image_viewer,
+  imgList: [],
+  imgSrcListLazy: [],
+  fileList: [],
+  pathList: [],
 })
 
+
+let videoWidth: number = document.documentElement.clientWidth * (globalReactive.isPC ? 0.7 : 0.85)
 const options = reactive({
-  // width: '50%', //播放器高度
-  // height: '50%', //播放器高度
+  width: videoWidth + "px", //播放器宽度
+  height: videoWidth * 9 / 16 + "px", //播放器高度
   color: "#409eff", //主题色
   title: "", //视频名称
   webFullScreen:false,//网页全屏
@@ -51,8 +60,9 @@ const options = reactive({
   control: true, //是否显示控制器
   ligthOff:false,//关灯模式
   volume:1,//默认音量0-1
+  preload: "meata",
   src: '', //视频源
-  poster: '', //封面
+  // poster: '', //封面
   speedRate: [1.0,1.25,1.5,2.0], // 可选的播放速度
   controlBtns: [
   "audioTrack",//音轨切换按钮
@@ -67,57 +77,34 @@ const options = reactive({
 
 })
 
-const win: any = window
 
-initHome(route.params.pathMatch as string, fileList, pathList, imgSrcList, imgSrcListLazy, options)
+
+initHome(route.params.pathMatch as string, options, globalReactive)
 
 // 初始化预览图 list、
 
 
 watch(router, async (to, from) => {
-  initHome(route.path.substring(5), fileList, pathList, imgSrcList, imgSrcListLazy, options)
+  initHome(route.path.substring(5), options, globalReactive)
 })
   
 
 
-const onPlay = (ev: any) => {
-  console.log("播放");
-};
 
-const onPotplayerPlay = (index: number) => {
-  let result = "potplayer://http://" + config.serverUrl + ":" + config.serverPort + '/video/' + encodeURI(fileList[index].path)
-  // result = "potplayer://http://" + config.serverUrl + ":" + config.serverPort + '/video/' + fileList[index].path
-  win.location.href = result
-};
-
+// img-viewer 由于无法改传入参数、只能放在这里、
 const onShowPic = (index: number) => {
-  console.log("onshow" + index);
-  updateImgSrcListLazy(imgSrcList, imgSrcListLazy, index)
-  el_image_viewer.value.setActiveItem(index)
-  isShowPics.value = true;
+  showPic(index, globalReactive)
 }
 
-const onSwich = (index: number) => {
-  console.log(index);
-  updateImgSrcListLazy(imgSrcList, imgSrcListLazy, index)
-  el_image_viewer.value.setActiveItem(index)
-};
-
-const updateImgSrcListLazy = (imgSrcList: string[], imgSrcListLazy: string[], index: number) => {
-  // 判断是否需要更新占位 url、
-  if (imgSrcListLazy[index] != ""){
-    // 不需要更新、
-    return
-  }
-  // 需要更新、
-  imgSrcListLazy[index] = imgSrcList[index]
+const onSwichPic = (index: number) => {
+  swichPic(index, globalReactive)
 }
-
 
 const onClose = () => {
-  isShowPics.value = false;
-  console.log("close");
-};
+    globalReactive.isShowPics = false;
+    console.log("close");
+  };
+
 </script>
 
 <template>
@@ -125,13 +112,13 @@ const onClose = () => {
     <!-- <TheWelcome /> -->
 
     <nav aria-label="xlCloud-nav">
-      <el-page-header @back="onBack(router, pathList)">
+      <el-page-header @back="onBack(router, globalReactive.pathList, options)">
         <template #breadcrumb>
           <el-breadcrumb separator="/">
             <el-breadcrumb-item :to="{ path: '/' }">
               /
             </el-breadcrumb-item>
-            <el-breadcrumb-item :to="{ path: item.fullPath}" :key="index" v-for="(item, index) in pathList">
+            <el-breadcrumb-item :to="{ path: item.fullPath}" :key="index" v-for="(item, index) in globalReactive.pathList">
               {{item.path}}
             </el-breadcrumb-item>
           </el-breadcrumb>
@@ -140,26 +127,26 @@ const onClose = () => {
       </el-page-header>
     </nav>
 
-    <videoPlay ref="aplayVideo" v-bind="options"  @play="onPlay" v-if="options.src != ''"/>
+    <videoPlay ref="aplayVideo" v-bind="options"  @play="" v-if="options.src != ''"/>
     <!-- <img style="width: 30px; height: 30px" v-if="(isShowPics.value as boolean)" src="../assets/video.png" alt="">  -->
 
-    <div v-show="isShowPics">
+    <div v-show="globalReactive.isShowPics">
       <el-image-viewer
         ref="el_image_viewer"
         @close="onClose"
-        @switch="onSwich"
-        :url-list="imgSrcListLazy"
+        @switch="onSwichPic"
+        :url-list="globalReactive.imgSrcListLazy"
         :initial-index="0"
         :hide-on-click-modal="true"
       />
     </div>
 
     <el-dialog v-model="globalReactive.fileDownloadDialog" title="Tips" width="30%" draggable>
-      <span>确认下载 {{fileList[globalReactive.nowFileIndex].fileName}}</span>
+      <span>确认下载 {{globalReactive.fileList[globalReactive.nowFileIndex].fileName}}</span>
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="globalReactive.fileDownloadDialog = false">Cancel</el-button>
-          <el-button type="primary" @click="onConfirmDownload(fileList, globalReactive)">
+          <el-button type="primary" @click="onConfirmDownload(globalReactive.fileList, globalReactive)">
             Confirm
           </el-button>
         </span>
@@ -169,8 +156,19 @@ const onClose = () => {
 
 
 
-    <div v-for="(item, index) in fileList">
-      <div v-if="item.type != 3" class="rowDiv" @click="onClickdownloadFile(route, router, index, fileList, options, globalReactive)">
+    <div v-for="(item, index) in globalReactive.imgList">
+      <div @click="onShowPic(index)" class="rowDiv">
+        <div class="tableCell">
+          <img style="width: 30px; height: 30px" src="../assets/img.png" alt=""> 
+        </div>
+        <div class="tableCell">
+          <span>{{item.fileName}}</span>
+        </div>
+        
+      </div>
+    </div>
+    <div v-for="(item, index) in globalReactive.fileList">
+      <div v-if="item.type != 3" class="rowDiv" @click="onClickdownloadFile(route, router, index, globalReactive.fileList, options, globalReactive)">
         <div class="tableCell" >
           <img style="width: 30px; height: 30px" v-if="item.type == 0" src="../assets/dir.png" alt=""> 
           <img style="width: 30px; height: 30px" v-if="item.type == 1" src="../assets/file.png" alt=""> 
@@ -184,32 +182,6 @@ const onClose = () => {
         </div> -->
         
       </div>
-
-      
-      
-      <div v-if="item.type == 3" @click="onShowPic(index)" class="rowDiv">
-        <div class="tableCell">
-          <img style="width: 30px; height: 30px" v-if="item.type == 3" src="../assets/img.png" alt=""> 
-        </div>
-        <div class="tableCell">
-          <span>{{item.fileName}}</span>
-        </div>
-        
-      </div>
-      <!-- 下面的 item.path 前面是存在 ./ 的、 
-      :src="'http://' + config.serverUrl + ':' + config.serverPort + '/file/' + item.path" 
-      -->
-      <!-- <el-image
-          style="width: 30px; height: 30px"
-          :src="imgSrc"
-          :zoom-rate="1.2"
-          :preview-src-list="imgSrcList"
-          :initial-index="index"
-          fit="cover"
-          :lazy="true"
-          loading="lazy"
-          v-if="item.type == 3"
-        /> -->
     </div>
   </main>
 </template>
