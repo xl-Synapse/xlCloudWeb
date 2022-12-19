@@ -11,7 +11,7 @@ import {initHome, onBack, isPC} from '@/ts/home-init'
 import {onClickdownloadFile, onConfirmDownload} from '@/ts/home-file'
 import {showPic, swichPic} from '@/ts/home-img'
 import type {ImgDTO} from '@/ts/home-img'
-import {config} from '@/config/config'
+
 import imgSrc from '@/assets/img.png'
 
 

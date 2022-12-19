@@ -3,8 +3,9 @@ import Cookies from 'js-cookie'
 import { h } from 'vue'
 import { ElNotification } from 'element-plus'
 import md5 from 'js-md5';
+import router from '@/router'
 
-export const onSign = (username: string, password: string, router: any) => {
+export const onSign = (username: string, password: string) => {
     apiPostSign({username: username, password: md5(password)})
         .then(
             (res: any) => {

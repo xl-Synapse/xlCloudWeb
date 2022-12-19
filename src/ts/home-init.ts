@@ -1,5 +1,5 @@
 import { apiGetListFiles, apiGetDownloadFile } from '@/apis/file-axios'
-import {config} from '@/config/config'
+// import {config} from '@/config/config'
 import type {ImgDTO} from '@/ts/home-img'
 
 export interface FileDTO {
@@ -49,7 +49,7 @@ export function initHome(path: string, options: any, globalReactive: GlobalReact
           if (value.type == 3) {
             globalReactive.imgList.push({
               fileName: value.fileName,
-              src: 'http://' + config.serverUrl + ':' + config.serverPort + '/file/' + value.path
+              src: 'http://' + (window as any).globalConfig.serverUrl + ':' + (window as any).globalConfig.serverPort + '/file/' + value.path
             })
 
             // 添加占位 url、

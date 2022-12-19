@@ -1,6 +1,6 @@
 import { apiGetDownloadFile, apiGetDownloadFileBrower } from '@/apis/file-axios'
 import type { FileDTO, GlobalReactive } from './home-init'
-import {config} from '@/config/config'
+// import {config} from '@/config/config'
 
 export const onClickdownloadFile = (route: any, router: any, index: number, fileList: FileDTO[], options: any, globalReactive: GlobalReactive) => {
     // 只有文件夹和普通文件由我处理、
@@ -20,7 +20,7 @@ export const onClickdownloadFile = (route: any, router: any, index: number, file
         globalReactive.fileDownloadDialog = true
         break
       case 2:
-        options.src = 'http://' + config.serverUrl + ':' + config.serverPort + '/video/' + fileList[index].path
+        options.src = 'http://' + globalReactive.win.globalConfig.serverUrl + ':' + globalReactive.win.globalConfig.serverPort + '/video/' + fileList[index].path
         break
     }
     // console.log(index)
@@ -28,7 +28,7 @@ export const onClickdownloadFile = (route: any, router: any, index: number, file
   
 export const onConfirmDownload = (fileList: FileDTO[], globalReactive: GlobalReactive) => {
     globalReactive.fileDownloadDialog = false
-    switch (config.downloadMethod) {
+    switch (globalReactive.win.globalConfig.downloadMethod) {
         case 0:
             apiGetDownloadFileBrower(globalReactive.win, fileList[globalReactive.nowFileIndex].path)
             break
@@ -61,7 +61,7 @@ export const downloadFile = (fileList: FileDTO[], index: number) => {
 
 
 const onPotplayerPlay = (index: number, fileList: FileDTO[], globalReactive: GlobalReactive) => {
-    let result = "potplayer://http://" + config.serverUrl + ":" + config.serverPort + '/video/' + encodeURI(fileList[index].path)
+    let result = "potplayer://http://" + globalReactive.win.globalConfig.serverUrl + ":" + globalReactive.win.globalConfig.serverPort + '/video/' + encodeURI(fileList[index].path)
     // result = "potplayer://http://" + config.serverUrl + ":" + config.serverPort + '/video/' + fileList[index].path
     globalReactive.win.location.href = result
   };

@@ -1,4 +1,7 @@
-export const config = {
+window.globalConfig = {
+    comment : "前端全局配置",
+    title : "xlCloud",
+    environment : "dev",
     serverUrl : "192.168.31.229",
     // serverUrl : "127.0.0.1",
     serverPort : "8080",

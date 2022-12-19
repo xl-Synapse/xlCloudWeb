@@ -1,7 +1,7 @@
 // 导入axios实例
 import httpRequest from '@/request/axios-config'
 
-import {config} from '@/config/config'
+// import {config} from '@/config/config'
 
 // // 定义接口的传参
 // interface UserInfoParam {
@@ -20,19 +20,19 @@ export function apiGetUserInfo(param: {}) {
 
 export function apiGetListFiles(param: string) {
 	return httpRequest({
-		url: 'http://' + config.serverUrl + ':' + config.serverPort + '/files/' + param,
+		url: 'http://' + (window as any).globalConfig.serverUrl + ':' + (window as any).globalConfig.serverPort + '/files/' + param,
 		method: 'get'
 	})
 }
 
 export function apiGetDownloadFile(param: string) {
 	return httpRequest({
-		url: 'http://' + config.serverUrl + ':' + config.serverPort + '/file/' + param,
+		url: 'http://' + (window as any).globalConfig.serverUrl + ':' + (window as any).globalConfig.serverPort + '/file/' + param,
 		method: 'get',
 		responseType:'blob'
 	})
 }
 
 export function apiGetDownloadFileBrower(win: any, param: string) {
-	win.location.href = 'http://' + config.serverUrl + ':' + config.serverPort + '/file/' + param
+	win.location.href = 'http://' + (window as any).globalConfig.serverUrl + ':' + (window as any).globalConfig.serverPort + '/file/' + param
 }

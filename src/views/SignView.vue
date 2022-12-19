@@ -5,13 +5,26 @@ import '@/assets/sign/fonts/font-awesome-4.7.0/css/font-awesome.min.css'
 
 import {onSign} from '@/ts/sign'
 
-import { useRoute, useRouter, type Router } from 'vue-router'
-import {ref, reactive, watch } from 'vue'
+import {onMounted, onUnmounted } from 'vue'
 
 let username = ""
 let password = ""
 
-const router = reactive(useRouter())
+
+onMounted(() => {
+  window.addEventListener('keydown', keyDown)
+})
+
+const keyDown = (e: any) => {
+  //如果是回车则执行登录方法
+  if (e.keyCode == 13) {
+    onSign(username, password)
+  }
+}
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', keyDown, false)
+})
 
 </script>
 
@@ -45,7 +58,7 @@ const router = reactive(useRouter())
 				</div>
 				
 				<div class="container-login100-form-btn">
-					<button class="login100-form-btn" type="button" @click="onSign(username, password, router)">
+					<button class="login100-form-btn" type="button" @click="onSign(username, password)">
 						登陆
 					</button>
 				</div>
