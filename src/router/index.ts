@@ -52,6 +52,8 @@ router.beforeEach((to, from, next) =>{
   }else{
     next("/sign");
   }
+
+  window.scrollTo(0, 0)
 })
 
 export default router

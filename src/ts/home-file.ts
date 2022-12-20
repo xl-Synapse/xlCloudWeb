@@ -1,9 +1,13 @@
-import { apiGetDownloadFile, apiGetDownloadFileBrower } from '@/apis/file-axios'
+
+import { apiGetDownloadFile, apiGetDownloadFileBrower, apiGetListFiles } from '@/apis/file-axios'
 import type { FileDTO, GlobalReactive } from './home-init'
 // import {config} from '@/config/config'
 
-export const onClickdownloadFile = (route: any, router: any, index: number, fileList: FileDTO[], options: any, globalReactive: GlobalReactive) => {
-    // 只有文件夹和普通文件由我处理、
+export const onClickdownloadFile = (route: any, router: any, index: number, fileList: FileDTO[], globalReactive: GlobalReactive) => {
+  // 保存当前操作的文件 index 到全局、
+  globalReactive.nowFileIndex = index  
+  
+  // 只有文件夹和普通文件由我处理、
     if (fileList[index].type > 2) { 
       return
     }
@@ -15,12 +19,26 @@ export const onClickdownloadFile = (route: any, router: any, index: number, file
         break
       case 1:
         // downloadFile(fileList, index)
-  
-        globalReactive.nowFileIndex = index
         globalReactive.fileDownloadDialog = true
         break
       case 2:
-        options.src = 'http://' + globalReactive.win.globalConfig.serverUrl + ':' + globalReactive.win.globalConfig.serverPort + '/video/' + fileList[index].path
+        // 播放视频、
+
+        // 弹框提醒选择字幕、同时为弹框添加数据、
+        globalReactive.selectSubDialog = true
+        apiGetListFiles(globalReactive.path + "/sub").then((res) => {
+          if (res.status != 200 || !res.data.success) {
+            return
+          }
+
+          // 为选择字幕添加数据、
+          let tempFileList = (res.data.data as unknown as FileDTO[])
+          if (tempFileList == null) {
+            return
+          }
+          globalReactive.selectSubData = tempFileList
+        })
+
         break
     }
     // console.log(index)

@@ -36,3 +36,18 @@ export function apiGetDownloadFile(param: string) {
 export function apiGetDownloadFileBrower(win: any, param: string) {
 	win.location.href = 'http://' + (window as any).globalConfig.serverUrl + ':' + (window as any).globalConfig.serverPort + '/file/' + param
 }
+
+export function apiGetPlayRecord(param: string) {
+	return httpRequest({
+		url: 'http://' + (window as any).globalConfig.serverUrl + ':' + (window as any).globalConfig.serverPort + '/playrecord/' + param.replaceAll("/", "&"),
+		method: 'get'
+	})
+}
+
+export function apiPutPlayRecord(data: {}) {
+	return httpRequest({
+		url: 'http://' + (window as any).globalConfig.serverUrl + ':' + (window as any).globalConfig.serverPort + '/playrecord/',
+		method: 'put',
+		data: data,
+	})
+}

@@ -47,6 +47,7 @@ service.interceptors.response.use(
 		// 检查后端 token 是否过期、
 		if (response.status == 200 && response.data.code == 20003) {
 			Cookies.remove("token")
+			Cookies.remove("userId")
 			router.push("/sign")
 			// let currentVue = getCurrentInstance();
 			// console.log(currentVue)

@@ -17,6 +17,7 @@ app.use(ElementPlus)
 app.config.errorHandler = (err) => {
     /* 处理错误 */
     console.log("xl error!")
+    console.log(err)
   }
 
 app.mount('#app')
