@@ -1,67 +1,125 @@
-import type Artplayer from 'artplayer';
+import Artplayer from 'artplayer';
 import type { FileDTO, GlobalReactive } from './home-init';
-import { apiGetPlayRecord, apiPutPlayRecord } from '@/apis/file-axios';
+import { apiGetConvertInfo, apiGetPlayRecord, apiPutPlayRecord } from '@/apis/video-axios';
 
-export const addEvListenerToPlayer = (artPlayer: Artplayer, globalReactive: GlobalReactive) => {
+export const addEvListenerToPlayer = (globalReactive: GlobalReactive, setSubCallBack: Function) => {
+    let artPlayer = globalReactive.artPlayer as Artplayer
     artPlayer.on('resize', (...args) => {
-        artPlayer.subtitle.style(
-            'font-size', artPlayer.width / 30 + "px"
-        )
+
+        let style = {
+            // color: 'withe',
+            'font-size': artPlayer.width / 30 + "px",
+        }
+        artPlayer.subtitle.switch(artPlayer.subtitle.url, {
+            name: '',
+            style: style,
+        });
+    })
+
+    artPlayer.on('ready', () => {
+        // 发起播放记录查询、
+        apiGetPlayRecord(globalReactive.userId + "&&" + globalReactive.fileList[globalReactive.nowFileIndex].path).then((res) => {
+            if (res.status != 200 || !res.data.success) {
+                return
+            }
+
+            // 调整播放（在play中处理）、记录 md5、
+            // globalReactive.artPlayer.currentTime = res.data.data.position as number
+            globalReactive.nowVideoRecordPosition = res.data.data.position as number
+            globalReactive.nowFileMd5 = res.data.data.fileMd5
+        })
     });
 
     artPlayer.on('play', (...args) => {
-        artPlayer.currentTime = globalReactive.nowVideoRecordPosition
-    });
+        if (artPlayer.currentTime < 5) {
+            // 只有在刚开始播放的时候会改变进度、（本来应该在 ready 中改变进度、但是导致pc端 mkv 无法拖动进度条、）
+            artPlayer.currentTime = globalReactive.nowVideoRecordPosition
 
-    artPlayer.on('fullscreen', (...args) => {
-        artPlayer.subtitle.style(
-            'font-size', artPlayer.width / 30 + "px"
-        )
-    });
+            // 设置 sub、
+            // 字幕必须在 播放 url 之后加载、否则可能出现字体大小不正确的问题、
+            setSubCallBack()
+        }
 
-    artPlayer.on('fullscreenWeb', (...args) => {
-        artPlayer.subtitle.style(
-            'font-size', artPlayer.width / 30 + "px"
-        )
+
+        // 恢复定时器、定时提交播放记录、防止用户直接嘎了浏览器、特别是手机端、
+        globalReactive.timer = window.setInterval(function logname() {
+            // 其他定时执行的方法
+            putPlayRecord(globalReactive)
+        }, 2000);
+    })
+
+    artPlayer.on('pause', (...args) => {
+        // 保存当前位置、防止重新播放被跳转、
+        globalReactive.nowVideoRecordPosition = artPlayer.currentTime
+
+        // 停止提交播放记录、
+        // 销毁定时器、
+        window.clearInterval(globalReactive.timer);
     });
 }
 
-export const selectSub = (row: FileDTO, isSub: boolean, globalReactive: GlobalReactive) => {
+export const playVideoAndSub = (row: FileDTO, artPlayerConfig: any, globalReactive: GlobalReactive, setSubCallBack: Function) => {
     // row 中是选中的字幕、
     // 先关闭对话框、并清理数据、
     globalReactive.selectSubDialog = false
     globalReactive.selectSubData = []
 
-
-    // 播放视频、
-    globalReactive.isShowArtPlayer = true
-    globalReactive.artPlayer.switchUrl(
-      'http://' + globalReactive.win.globalConfig.serverUrl + ':' + globalReactive.win.globalConfig.serverPort + '/video/' + globalReactive.fileList[globalReactive.nowFileIndex].path,
-      globalReactive.fileList[globalReactive.nowFileIndex].fileName
-      )
+    // 重新创建播放器实例、
+    if (globalReactive.artPlayer && globalReactive.artPlayer.destroy) {
+        globalReactive.artPlayer.destroy(false)
+      }
     
-    // 发起播放记录查询、
-    apiGetPlayRecord(globalReactive.userId + "&&" + globalReactive.fileList[globalReactive.nowFileIndex].path).then((res) => {
-        if (res.status != 200 || !res.data.success) {
-            return
-        }
+    globalReactive.artPlayer = new Artplayer(artPlayerConfig)
+    addEvListenerToPlayer(globalReactive, setSubCallBack)
 
-        // 调整播放、记录 md5、
-        // globalReactive.artPlayer.currentTime = res.data.data.position as number
-        globalReactive.nowVideoRecordPosition = res.data.data.position as number
-        globalReactive.nowFileMd5 = res.data.data.fileMd5
-    })
 
-    // 设置字幕、
-    if (!isSub) {
+    // 不需要触发查询转换记录、
+    if (globalReactive.isPC || !globalReactive.fileList[globalReactive.nowFileIndex].fileName.toLowerCase().endsWith('.mkv')) {
+        playVideo(
+            'http://' + globalReactive.win.globalConfig.serverUrl + ':' + globalReactive.win.globalConfig.serverPort + '/video/' + globalReactive.fileList[globalReactive.nowFileIndex].path.replaceAll('/', '&'),
+            globalReactive.fileList[globalReactive.nowFileIndex].fileName,
+            globalReactive
+        )
         return
     }
 
-    globalReactive.artPlayer.subtitle.switch('http://' + globalReactive.win.globalConfig.serverUrl + ':' + globalReactive.win.globalConfig.serverPort + '/file/' + row.path, {
-      name: row.fileName,
+
+    // 移动端、需要查询转换记录、
+    apiGetConvertInfo(globalReactive.fileList[globalReactive.nowFileIndex].path).then((res) => {
+        if (res.status != 200 || !res.data.success) {
+            // 没有转换记录、
+            playVideo(
+                'http://' + globalReactive.win.globalConfig.serverUrl + ':' + globalReactive.win.globalConfig.serverPort + '/video/' + globalReactive.fileList[globalReactive.nowFileIndex].path.replaceAll('/', '&'),
+                globalReactive.fileList[globalReactive.nowFileIndex].fileName,
+                globalReactive
+            )
+            return
+        }
+
+        // 已经转换完成、
+        playVideo(
+            'http://' + globalReactive.win.globalConfig.serverUrl + ':' + globalReactive.win.globalConfig.serverPort + '/video/' + '.cache&' + res.data.data + '.mp4',
+            globalReactive.fileList[globalReactive.nowFileIndex].fileName,
+            globalReactive
+        )
+    })
+
+}
+
+const playVideo = (url: string, fileName: string, globalReactive: GlobalReactive) => {
+    globalReactive.isShowArtPlayer = true
+    globalReactive.artPlayer.switchUrl(url, fileName)
+}
+
+export const setSub = (url: string, fileName: string, globalReactive: GlobalReactive) => {
+    console.log(url)
+    // 有字幕、
+    globalReactive.artPlayer.subtitle.show = true
+    globalReactive.artPlayer.subtitle.switch(url, {
+      name: fileName,
       style: {
           color: 'white',
-          'font-size': globalReactive.subtitleSize,
+          'font-size': globalReactive.subtitleSize + 'px',
       },
     });
 }

@@ -47,10 +47,10 @@ export const onClickdownloadFile = (route: any, router: any, index: number, file
 export const onConfirmDownload = (fileList: FileDTO[], globalReactive: GlobalReactive) => {
     globalReactive.fileDownloadDialog = false
     switch (globalReactive.win.globalConfig.downloadMethod) {
-        case 0:
-            apiGetDownloadFileBrower(globalReactive.win, fileList[globalReactive.nowFileIndex].path)
+        case 0: // 触发浏览器下载、
+            apiGetDownloadFileBrower(globalReactive.win, fileList[globalReactive.nowFileIndex].path.replaceAll('/', '&'))
             break
-        case 1:
+        case 1: // 自定义下载、
             downloadFile(fileList, globalReactive.nowFileIndex)
             break
     }
@@ -60,7 +60,7 @@ export const onConfirmDownload = (fileList: FileDTO[], globalReactive: GlobalRea
 // 不要改动内容、已经开发完毕、自定义下载、暂无进度条、
 export const downloadFile = (fileList: FileDTO[], index: number) => {
     let path = fileList[index].path
-    apiGetDownloadFile(path).then(res => {
+    apiGetDownloadFile(path.replaceAll('/', '&')).then(res => {
                 const blob = new Blob([res.data]);
                 const fileName = res.headers["content-disposition"]?.split(";")[1].split("filename=")[1];
                 // const fileName = "test.md"

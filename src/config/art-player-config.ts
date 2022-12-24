@@ -11,6 +11,7 @@ export const artPlayerConfig = {
     // screenshot: true, // 视频截图、
     hotkey: true,
     pip: true,
+    lock: true, // 移动端锁定控制、
     fullscreen: true,
     fullscreenWeb: true,
     playsInline: true, // 移动端
@@ -23,7 +24,7 @@ export const artPlayerConfig = {
         encoding: 'utf-8',
         style: {
             color: '#03A9F4',
-            'font-size': '40px', // 注意后面需要根据移动端屏幕大小调整、
+            'font-size': '70px', // 注意后面需要根据移动端屏幕大小调整、
         },
     },
     

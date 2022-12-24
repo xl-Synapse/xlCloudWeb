@@ -12,6 +12,7 @@
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore"
   },
   "dependencies": {
+    "@videojs-player/vue": "^1.0.0",
     "artplayer": "^4.5.12",
     "axios": "^1.2.1",
     "dplayer": "^1.27.0",
@@ -19,6 +20,7 @@
     "js-cookie": "^3.0.1",
     "js-md5": "^0.7.3",
     "pinia": "^2.0.28",
+    "video.js": "^7.20.3",
     "vue": "^3.2.45",
     "vue-beauty": "^2.0.0-beta.19",
     "vue-router": "^4.1.6"

@@ -10,7 +10,7 @@ import {initHome, onBack, isPCCheck} from '@/ts/home-init'
 import {onClickdownloadFile, onConfirmDownload} from '@/ts/home-file'
 import {showPic, swichPic} from '@/ts/home-img'
 import {artPlayerConfig} from '@/config/art-player-config'
-import {addEvListenerToPlayer, selectSub, putPlayRecord} from '@/ts/home-video'
+import {addEvListenerToPlayer, playVideoAndSub, setSub, putPlayRecord} from '@/ts/home-video'
 
 
 
@@ -19,12 +19,11 @@ const router = reactive(useRouter())
 
 const el_image_viewer: any = ref(null) // Vue 自己注入依赖、
 const artRef: any = ref(null)
-const timer = ref(0) // 定时提交播放记录、
 
 
 let isPC: boolean = isPCCheck(window)
 let videoWidth = document.documentElement.clientWidth * (isPC ? 0.7 : 0.85)
-let subtitleSize = videoWidth / 30 + "px"
+let subtitleSize = videoWidth / 30
 
 const globalReactive = reactive<GlobalReactive>({
   fileDownloadDialog: false,
@@ -35,6 +34,8 @@ const globalReactive = reactive<GlobalReactive>({
   nowFileIndex: 0,
   nowFileMd5: "",
   nowVideoRecordPosition: 0,
+  timer: 0, // 提交播放记录的定时器 index、
+
   win: window,
   isPC: isPC,
 
@@ -45,7 +46,9 @@ const globalReactive = reactive<GlobalReactive>({
   imgList: [],
   imgSrcListLazy: [],
   fileList: [],
+  playedList: [],
   pathList: [],
+  
   artPlayer: null,
   isShowArtPlayer: false,
   videoWidth: videoWidth,
@@ -68,14 +71,12 @@ watch(router, async (to, from) => {
 
 onMounted(() => {
   artPlayerConfig.container = artRef.value
-  globalReactive.artPlayer = new Artplayer(artPlayerConfig)
-  addEvListenerToPlayer(globalReactive.artPlayer, globalReactive)
+  
+  let win = window as any
+  win.globalReactive = globalReactive
 
-  // 注册定时器、定时提交播放记录、防止用户直接嘎了浏览器、特别是手机端、
-  timer.value = window.setInterval(function logname() {
-                // 其他定时执行的方法
-                putPlayRecord(globalReactive)
-            }, 10000);
+  // globalReactive.artPlayer = new Artplayer(artPlayerConfig)
+  // addEvListenerToPlayer(globalReactive)
 })
 
 onUnmounted(() => {
@@ -84,7 +85,7 @@ onUnmounted(() => {
   }
 
   // 销毁定时器、
-  window.clearInterval(timer.value);
+  window.clearInterval(globalReactive.timer);
 })
 
 // img-viewer 由于无法改传入参数、只能放在这里、
@@ -103,11 +104,20 @@ const onClose = () => {
 
 // el-table 无法改参数、只能放在这里、
 const onSelectSub = (row: FileDTO, column: any, event: any) => {
-  selectSub(row, true, globalReactive)
+  playVideoAndSub(row, artPlayerConfig, globalReactive, () => {
+    setSub(
+      'http://' + globalReactive.win.globalConfig.serverUrl + ':' + globalReactive.win.globalConfig.serverPort + '/file/' + row.path.replaceAll('/', '&'), 
+      row.fileName, 
+      globalReactive
+    )
+  })
+
 }
 
 const onNoSub = (ev: any) => {
-  selectSub(null as unknown as FileDTO, false, globalReactive)
+  playVideoAndSub(null as unknown as FileDTO, artPlayerConfig, globalReactive, () => {
+    globalReactive.artPlayer.subtitle.show = false
+  })
 }
 
 </script>
@@ -193,7 +203,7 @@ const onNoSub = (ev: any) => {
           <img style="width: 30px; height: 30px" v-if="item.type == 0" src="../assets/dir.png" alt=""> 
           <img style="width: 30px; height: 30px" v-if="item.type == 1" src="../assets/file.png" alt=""> 
           <img style="width: 30px; height: 30px" v-if="item.type == 2" src="../assets/video.png" alt=""> 
-          <span>{{item.fileName}}</span>
+          <span :style="{'color': (item.type == 2 && globalReactive.playedList && globalReactive.playedList.includes(item.fileMd5)) ? 'purple' : 'black'}">{{item.fileName}}</span>
           
         </div>
         

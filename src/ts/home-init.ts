@@ -1,5 +1,6 @@
 
 import { apiGetListFiles, apiGetDownloadFile } from '@/apis/file-axios'
+import {apiGetFileRecord} from '@/apis/video-axios'
 // import {config} from '@/config/config'
 import type {ImgDTO} from '@/ts/home-img'
 
@@ -7,6 +8,7 @@ export interface FileDTO {
     path: string,
     fileName: string,
     type: number
+    fileMd5: string,
   }
 
 export interface PathCache {
@@ -23,6 +25,8 @@ export interface GlobalReactive {
   nowFileIndex: number,
   nowFileMd5: string,
   nowVideoRecordPosition: number,
+  timer: number,
+
   win: any,
   isPC: boolean,
 
@@ -33,11 +37,13 @@ export interface GlobalReactive {
   imgList: ImgDTO[],
   imgSrcListLazy: string[],
   fileList: FileDTO[],
+  playedList: string[],
   pathList: PathCache[],
+  
   artPlayer: any,
   isShowArtPlayer: boolean,
   videoWidth: number,
-  subtitleSize: string,
+  subtitleSize: number,
 }
 
 export function initHome(path: string, globalReactive: GlobalReactive) {
@@ -47,7 +53,6 @@ export function initHome(path: string, globalReactive: GlobalReactive) {
     // 更新 fileList
     apiGetListFiles(path).then((res) => {
         if (res.status != 200 || !res.data.success) {
-          console.log("ge")
           return
         }
 
@@ -63,19 +68,36 @@ export function initHome(path: string, globalReactive: GlobalReactive) {
           return
         }
 
-        // 处理图片类型、
+        let videoList: string[] = []
+        // 处理特殊类型、
         globalReactive.fileList.sort((a, b) => a.type - b.type)
         globalReactive.fileList.forEach((value) => {
           // 更新 imgSrcList
           if (value.type == 3) {
             globalReactive.imgList.push({
               fileName: value.fileName,
-              src: 'http://' + (window as any).globalConfig.serverUrl + ':' + (window as any).globalConfig.serverPort + '/file/' + value.path
+              src: 'http://' + (window as any).globalConfig.serverUrl + ':' + (window as any).globalConfig.serverPort + '/file/' + value.path.replaceAll('/', '&')
             })
 
             // 添加占位 url、
             globalReactive.imgSrcListLazy.push("")
           }
+
+          // 处理已播放过的视频、
+          
+          if (value.type == 2) {
+            videoList.push(value.fileMd5)
+          }
+        })
+
+        // 查询视频是否播放过、
+        if (videoList.length > 0)
+        apiGetFileRecord(globalReactive.userId, videoList).then((res) => {
+          if (res.status != 200) {
+            return
+          }
+
+          globalReactive.playedList = res.data.data as unknown as string[]
         })
       })
     
@@ -98,8 +120,11 @@ export function initHome(path: string, globalReactive: GlobalReactive) {
 export const onBack = (router: any, pathList: PathCache[], globalReactive: GlobalReactive) => {
 
     if (globalReactive.isShowArtPlayer) {
+      // 销毁播放器实例、
       globalReactive.isShowArtPlayer = false
-      globalReactive.artPlayer.switchUrl('', 'null file')
+      if (globalReactive.artPlayer && globalReactive.artPlayer.destroy) {
+        globalReactive.artPlayer.destroy(true)
+      }
       return
     }
 
