@@ -123,7 +123,8 @@ export const onBack = (router: any, pathList: PathCache[], globalReactive: Globa
       // 销毁播放器实例、
       globalReactive.isShowArtPlayer = false
       if (globalReactive.artPlayer && globalReactive.artPlayer.destroy) {
-        globalReactive.artPlayer.destroy(true)
+        globalReactive.artPlayer.pause()
+        globalReactive.artPlayer.destroy(false)
       }
       return
     }
