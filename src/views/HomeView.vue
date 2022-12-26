@@ -6,13 +6,13 @@ import Cookies from 'js-cookie'
 import Artplayer from 'artplayer';
 
 import type { FileDTO, PathCache, GlobalReactive} from '@/ts/home-init'
-import {initHome, onBack, isPCCheck} from '@/ts/home-init'
+import {initHome, onBack, isPCCheck, getServerInfo} from '@/ts/home-init'
 import {onClickdownloadFile, onConfirmDownload} from '@/ts/home-file'
 import {showPic, swichPic} from '@/ts/home-img'
 import {artPlayerConfig} from '@/config/art-player-config'
 import {addEvListenerToPlayer, playVideoAndSub, setSub, putPlayRecord} from '@/ts/home-video'
 
-
+getServerInfo() // 刷新当前server配置、
 
 const route = useRoute()
 const router = reactive(useRouter())

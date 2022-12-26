@@ -73,6 +73,7 @@ export const playVideoAndSub = (row: FileDTO, artPlayerConfig: any, globalReacti
     addEvListenerToPlayer(globalReactive, setSubCallBack)
 
 
+
     // 不需要触发查询转换记录、
     if (globalReactive.isPC || !globalReactive.fileList[globalReactive.nowFileIndex].fileName.toLowerCase().endsWith('.mkv')) {
         playVideo(

@@ -6,6 +6,6 @@ window.globalConfig = {
     // serverUrl : "192.168.31.229",
     // serverUrl : "127.0.0.1",
     // serverUrl: "192.168.31.107",
-    serverPort : "8080",
+    serverPort : 8080,
     downloadMethod : 0, // 0 浏览器原生下载、 1 自定义下载（暂无进度条）
 }

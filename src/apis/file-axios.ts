@@ -20,21 +20,24 @@ export function apiGetUserInfo(param: {}) {
 
 export function apiGetListFiles(param: string) {
 	return httpRequest({
-		url: 'http://' + (window as any).globalConfig.serverUrl + ':' + (window as any).globalConfig.serverPort + '/files/' + param,
+		url: 'http://' + (window as any).globalConfig.serverUrl + ':' + (window as any).globalConfig.serverPort + '/files/' 
+			+ param.replaceAll("/", "&"),
 		method: 'get'
 	})
 }
 
 export function apiGetDownloadFile(param: string) {
 	return httpRequest({
-		url: 'http://' + (window as any).globalConfig.serverUrl + ':' + (window as any).globalConfig.serverPort + '/file/' + param,
+		url: 'http://' + (window as any).globalConfig.serverUrl + ':' + (window as any).globalConfig.serverPort + '/file/' 
+			+ param.replaceAll("/", "&"),
 		method: 'get',
 		responseType:'blob'
 	})
 }
 
 export function apiGetDownloadFileBrower(win: any, param: string) {
-	win.location.href = 'http://' + (window as any).globalConfig.serverUrl + ':' + (window as any).globalConfig.serverPort + '/file/' + param
+	win.location.href = 'http://' + (window as any).globalConfig.serverUrl + ':' + (window as any).globalConfig.serverPort + '/file/' 
+	+ param.replaceAll("/", "&")
 }
 
 

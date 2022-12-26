@@ -3,9 +3,12 @@ import '@/assets/sign/css/util.css'
 import '@/assets/sign/css/main.css'
 import '@/assets/sign/fonts/font-awesome-4.7.0/css/font-awesome.min.css'
 
+import {getServerInfo} from '@/ts/home-init'
 import {onSign} from '@/ts/sign'
 
 import {onMounted, onUnmounted } from 'vue'
+
+getServerInfo() // 刷新server配置、
 
 let username = ""
 let password = ""

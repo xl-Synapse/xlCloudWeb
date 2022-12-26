@@ -1,6 +1,7 @@
 
 import { apiGetListFiles, apiGetDownloadFile } from '@/apis/file-axios'
 import {apiGetFileRecord} from '@/apis/video-axios'
+import Cookies from 'js-cookie'
 // import {config} from '@/config/config'
 import type {ImgDTO} from '@/ts/home-img'
 
@@ -146,7 +147,6 @@ export const onBack = (router: any, pathList: PathCache[], globalReactive: Globa
     return
   }
 
-
   export const isPCCheck = (win: any) => {
     let flag = win.navigator.userAgent.match(
       /(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i
@@ -155,4 +155,25 @@ export const onBack = (router: any, pathList: PathCache[], globalReactive: Globa
       return false;
     }
     return true;
+  }
+
+  export const setServerInfo = (serverUrl: string, serverPort: number) => {
+    (window as any).globalConfig.serverUrl = serverUrl;
+    (window as any).globalConfig.serverPort = serverPort;
+
+    Cookies.set("serverUrl", serverUrl)
+    Cookies.set("serverPort", serverPort)
+  }
+
+  export const getServerInfo = () => {
+    
+    let serverUrl = Cookies.get("serverUrl")
+    let serverPort: number = Cookies.get("serverPort")
+
+    if (!serverUrl || !serverPort) {
+      return
+    }
+
+    (window as any).globalConfig.serverUrl = serverUrl;
+    (window as any).globalConfig.serverPort = serverPort;
   }
