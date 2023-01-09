@@ -3,6 +3,7 @@
 import {ref, reactive, watch, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter, type Router } from 'vue-router'
 import Cookies from 'js-cookie'
+import {Base64} from 'js-base64'
 import Artplayer from 'artplayer';
 
 import type { FileDTO, PathCache, GlobalReactive} from '@/ts/home-init'
@@ -10,7 +11,7 @@ import {initHome, onBack, isPCCheck, getServerInfo} from '@/ts/home-init'
 import {onClickdownloadFile, onConfirmDownload} from '@/ts/home-file'
 import {showPic, swichPic} from '@/ts/home-img'
 import {artPlayerConfig} from '@/config/art-player-config'
-import {addEvListenerToPlayer, playVideoAndSub, setSub, putPlayRecord} from '@/ts/home-video'
+import {addEvListenerToPlayer, playVideoAndSub, setSub, putPlayRecord, onPotplayerPlay} from '@/ts/home-video'
 
 getServerInfo() // 刷新当前server配置、
 
@@ -106,7 +107,8 @@ const onClose = () => {
 const onSelectSub = (row: FileDTO, column: any, event: any) => {
   playVideoAndSub(row, artPlayerConfig, globalReactive, () => {
     setSub(
-      'http://' + globalReactive.win.globalConfig.serverUrl + ':' + globalReactive.win.globalConfig.serverPort + '/file/' + row.path.replaceAll('/', '&'), 
+      'http://' + globalReactive.win.globalConfig.serverUrl + ':' + globalReactive.win.globalConfig.serverPort + '/file/' 
+        + Base64.encode(row.path), 
       row.fileName, 
       globalReactive
     )
@@ -206,12 +208,14 @@ const onNoSub = (ev: any) => {
           <span :style="{'color': (item.type == 2 && globalReactive.playedList && globalReactive.playedList.includes(item.fileMd5)) ? 'purple' : 'black'}">{{item.fileName}}</span>
           
         </div>
-        
-        <!-- <div class="tableCell" v-if="item.type == 2">
-          <el-button type="primary" @click="onPotplayerPlay(index)">本地播放</el-button>
-        </div> -->
+
+        <div class="tableCell" v-if="item.type == 2 && globalReactive.isPC">
+          <el-button type="primary" @click.stop="onPotplayerPlay(index, globalReactive.fileList)">本地播放</el-button>
+        </div>
+
         
       </div>
+      
     </div>
   </main>
 </template>

@@ -1,6 +1,7 @@
 import Artplayer from 'artplayer';
 import type { FileDTO, GlobalReactive } from './home-init';
 import { apiGetConvertInfo, apiGetPlayRecord, apiPutPlayRecord } from '@/apis/video-axios';
+import {Base64} from 'js-base64'
 
 export const addEvListenerToPlayer = (globalReactive: GlobalReactive, setSubCallBack: Function) => {
     let artPlayer = globalReactive.artPlayer as Artplayer
@@ -77,7 +78,8 @@ export const playVideoAndSub = (row: FileDTO, artPlayerConfig: any, globalReacti
     // 不需要触发查询转换记录、
     if (globalReactive.isPC || !globalReactive.fileList[globalReactive.nowFileIndex].fileName.toLowerCase().endsWith('.mkv')) {
         playVideo(
-            'http://' + globalReactive.win.globalConfig.serverUrl + ':' + globalReactive.win.globalConfig.serverPort + '/video/' + globalReactive.fileList[globalReactive.nowFileIndex].path.replaceAll('/', '&'),
+            'http://' + globalReactive.win.globalConfig.serverUrl + ':' + globalReactive.win.globalConfig.serverPort + '/video/' 
+                + Base64.encode(globalReactive.fileList[globalReactive.nowFileIndex].path, true),
             globalReactive.fileList[globalReactive.nowFileIndex].fileName,
             globalReactive
         )
@@ -90,7 +92,8 @@ export const playVideoAndSub = (row: FileDTO, artPlayerConfig: any, globalReacti
         if (res.status != 200 || !res.data.success) {
             // 没有转换记录、
             playVideo(
-                'http://' + globalReactive.win.globalConfig.serverUrl + ':' + globalReactive.win.globalConfig.serverPort + '/video/' + globalReactive.fileList[globalReactive.nowFileIndex].path.replaceAll('/', '&'),
+                'http://' + globalReactive.win.globalConfig.serverUrl + ':' + globalReactive.win.globalConfig.serverPort + '/video/' 
+                    + Base64.encode(globalReactive.fileList[globalReactive.nowFileIndex].path, true),
                 globalReactive.fileList[globalReactive.nowFileIndex].fileName,
                 globalReactive
             )
@@ -99,7 +102,8 @@ export const playVideoAndSub = (row: FileDTO, artPlayerConfig: any, globalReacti
 
         // 已经转换完成、
         playVideo(
-            'http://' + globalReactive.win.globalConfig.serverUrl + ':' + globalReactive.win.globalConfig.serverPort + '/video/' + '.cache&' + res.data.data + '.mp4',
+            'http://' + globalReactive.win.globalConfig.serverUrl + ':' + globalReactive.win.globalConfig.serverPort + '/video/' 
+                + Base64.encode('.cache/' + res.data.data + '.mp4', true),
             globalReactive.fileList[globalReactive.nowFileIndex].fileName,
             globalReactive
         )
@@ -139,4 +143,12 @@ export const putPlayRecord = (globalReactive: GlobalReactive) => {
     }).then((res) => {
         console.log("Submit play record success.")
     })
+}
+
+export const onPotplayerPlay = (index: number, fileList: FileDTO[]) => {
+    let win = window as any;
+    let result = "potplayer://http://" + win.globalConfig.serverUrl + ":" + win.globalConfig.serverPort + '/video/' 
+        + Base64.encode(fileList[index].path, true)
+
+    win.location.href = result
 }

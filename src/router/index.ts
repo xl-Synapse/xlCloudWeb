@@ -55,9 +55,9 @@ router.beforeEach((to, from, next) =>{
   console.log(from);
   let token = Cookies.get("token");
   console.log(token);
-  if(token || to.path === '/sign'){
+  if(to.path === '/setting' || token || to.path === '/sign') {
     next();
-  }else{
+  } else {
     next("/sign");
   }
 

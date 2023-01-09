@@ -1,5 +1,6 @@
 // 导入axios实例
 import httpRequest from '@/request/axios-config'
+import {Base64} from 'js-base64'
 
 // import {config} from '@/config/config'
 
@@ -19,9 +20,10 @@ export function apiGetUserInfo(param: {}) {
 }
 
 export function apiGetListFiles(param: string) {
+	console.log(Base64.encode(param))
 	return httpRequest({
 		url: 'http://' + (window as any).globalConfig.serverUrl + ':' + (window as any).globalConfig.serverPort + '/files/' 
-			+ param.replaceAll("/", "&"),
+			+ Base64.encode(param, true),
 		method: 'get'
 	})
 }
@@ -29,7 +31,7 @@ export function apiGetListFiles(param: string) {
 export function apiGetDownloadFile(param: string) {
 	return httpRequest({
 		url: 'http://' + (window as any).globalConfig.serverUrl + ':' + (window as any).globalConfig.serverPort + '/file/' 
-			+ param.replaceAll("/", "&"),
+			+ Base64.encode(param, true),
 		method: 'get',
 		responseType:'blob'
 	})
@@ -37,7 +39,7 @@ export function apiGetDownloadFile(param: string) {
 
 export function apiGetDownloadFileBrower(win: any, param: string) {
 	win.location.href = 'http://' + (window as any).globalConfig.serverUrl + ':' + (window as any).globalConfig.serverPort + '/file/' 
-	+ param.replaceAll("/", "&")
+	+ Base64.encode(param, true)
 }
 
 

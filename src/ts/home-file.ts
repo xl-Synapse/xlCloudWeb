@@ -1,6 +1,8 @@
 
 import { apiGetDownloadFile, apiGetDownloadFileBrower, apiGetListFiles } from '@/apis/file-axios'
 import type { FileDTO, GlobalReactive } from './home-init'
+import {initHome} from './home-init'
+import {Base64} from 'js-base64'
 // import {config} from '@/config/config'
 
 export const onClickdownloadFile = (route: any, router: any, index: number, fileList: FileDTO[], globalReactive: GlobalReactive) => {
@@ -15,7 +17,12 @@ export const onClickdownloadFile = (route: any, router: any, index: number, file
     // 如果是文件夹、进入、
     switch (fileList[index].type) {
       case 0:
-        router.push( { path: "/all/" + fileList[index].path } ) 
+        initHome(fileList[index].path, globalReactive)
+        globalReactive.pathList.push({
+              fullPath: fileList[index].path,
+              path: fileList[index].fileName
+            })
+        // router.push( { path: "/all/" + fileList[index].path } ) 
         break
       case 1:
         // downloadFile(fileList, index)
@@ -48,7 +55,7 @@ export const onConfirmDownload = (fileList: FileDTO[], globalReactive: GlobalRea
     globalReactive.fileDownloadDialog = false
     switch (globalReactive.win.globalConfig.downloadMethod) {
         case 0: // 触发浏览器下载、
-            apiGetDownloadFileBrower(globalReactive.win, fileList[globalReactive.nowFileIndex].path.replaceAll('/', '&'))
+            apiGetDownloadFileBrower(globalReactive.win, fileList[globalReactive.nowFileIndex].path)
             break
         case 1: // 自定义下载、
             downloadFile(fileList, globalReactive.nowFileIndex)
@@ -76,10 +83,3 @@ export const downloadFile = (fileList: FileDTO[], index: number) => {
     }
     )
 }
-
-
-const onPotplayerPlay = (index: number, fileList: FileDTO[], globalReactive: GlobalReactive) => {
-    let result = "potplayer://http://" + globalReactive.win.globalConfig.serverUrl + ":" + globalReactive.win.globalConfig.serverPort + '/video/' + encodeURI(fileList[index].path)
-    // result = "potplayer://http://" + config.serverUrl + ":" + config.serverPort + '/video/' + fileList[index].path
-    globalReactive.win.location.href = result
-  };

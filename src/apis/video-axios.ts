@@ -1,5 +1,6 @@
 // 导入axios实例
 import httpRequest from '@/request/axios-config'
+import {Base64} from 'js-base64'
 
 export function apiGetFileRecord(userId: number, param: string[]) {
 	let fileMd5 = ""
@@ -17,7 +18,7 @@ export function apiGetFileRecord(userId: number, param: string[]) {
 export function apiGetConvertInfo(param: string) {
 	return httpRequest({
 		url: 'http://' + (window as any).globalConfig.serverUrl + ':' + (window as any).globalConfig.serverPort + '/convertinfo/' 
-			+ param.replaceAll("/", "&"),
+			+ Base64.encode(param, true),
 		method: 'get'
 	})
 }
@@ -25,7 +26,7 @@ export function apiGetConvertInfo(param: string) {
 export function apiGetPlayRecord(param: string) {
 	return httpRequest({
 		url: 'http://' + (window as any).globalConfig.serverUrl + ':' + (window as any).globalConfig.serverPort + '/playrecord/' 
-			+ param.replaceAll("/", "&"),
+			+ Base64.encode(param, true),
 		method: 'get'
 	})
 }

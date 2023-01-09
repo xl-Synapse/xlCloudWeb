@@ -2,8 +2,10 @@
 import { apiGetListFiles, apiGetDownloadFile } from '@/apis/file-axios'
 import {apiGetFileRecord} from '@/apis/video-axios'
 import Cookies from 'js-cookie'
+import {Base64} from 'js-base64'
 // import {config} from '@/config/config'
 import type {ImgDTO} from '@/ts/home-img'
+import path from 'path'
 
 export interface FileDTO {
     path: string,
@@ -77,7 +79,7 @@ export function initHome(path: string, globalReactive: GlobalReactive) {
           if (value.type == 3) {
             globalReactive.imgList.push({
               fileName: value.fileName,
-              src: 'http://' + (window as any).globalConfig.serverUrl + ':' + (window as any).globalConfig.serverPort + '/file/' + value.path.replaceAll('/', '&')
+              src: 'http://' + (window as any).globalConfig.serverUrl + ':' + (window as any).globalConfig.serverPort + '/file/' + Base64.encode(value.path, true)
             })
 
             // 添加占位 url、
@@ -102,19 +104,19 @@ export function initHome(path: string, globalReactive: GlobalReactive) {
         })
       })
     
-    // 更新 pathList
-    globalReactive.pathList = []
-    let tempPathList = path.split("/")
-    let tempPath: string = "/all"
-    for (path of tempPathList) {
-      // path = path
-      tempPath = tempPath + "/" + path
-      console.log("now = " + tempPath)
-      globalReactive.pathList.push({
-        fullPath: tempPath,
-        path: path
-      })
-    }
+    // // 更新 pathList
+    // globalReactive.pathList = []
+    // let tempPathList = path.split("/")
+    // let tempPath: string = "/all"
+    // for (path of tempPathList) {
+    //   // path = path
+    //   tempPath = tempPath + "/" + path
+    //   console.log("now = " + tempPath)
+    //   globalReactive.pathList.push({
+    //     fullPath: tempPath,
+    //     path: path
+    //   })
+    // }
 
 }
 
@@ -136,14 +138,11 @@ export const onBack = (router: any, pathList: PathCache[], globalReactive: Globa
         return
     }
 
-    if (pathList.length == 1) {
-      router.push( { path: "/all/"} )
-      return
-    }
    
-    let backPath = pathList[pathList.length - 2].fullPath
-    // console.log("onback" + backPath)
-    router.push( { path: backPath} )
+    pathList.splice(pathList.length - 1, 1)
+    let backPath = (pathList.length >= 1) ? pathList[pathList.length - 1].fullPath : ""
+    initHome(backPath, globalReactive)
+
     return
   }
 
