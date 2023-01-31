@@ -1,7 +1,9 @@
 import Artplayer from 'artplayer';
 import type { FileDTO, GlobalReactive } from './home-init';
 import { apiGetConvertInfo, apiGetPlayRecord, apiPutPlayRecord } from '@/apis/video-axios';
+import { apiGetDownloadFileBrower } from '@/apis/file-axios';
 import {Base64} from 'js-base64'
+import useClipboard from 'vue-clipboard3'
 
 export const addEvListenerToPlayer = (globalReactive: GlobalReactive, setSubCallBack: Function) => {
     let artPlayer = globalReactive.artPlayer as Artplayer
@@ -19,7 +21,7 @@ export const addEvListenerToPlayer = (globalReactive: GlobalReactive, setSubCall
 
     artPlayer.on('ready', () => {
         // 发起播放记录查询、
-        apiGetPlayRecord(globalReactive.userId + "&&" + globalReactive.fileList[globalReactive.nowFileIndex].path).then((res) => {
+        apiGetPlayRecord(globalReactive.userId, globalReactive.fileList[globalReactive.nowFileIndex].path).then((res) => {
             if (res.status != 200 || !res.data.success) {
                 return
             }
@@ -151,4 +153,20 @@ export const onPotplayerPlay = (index: number, fileList: FileDTO[]) => {
         + Base64.encode(fileList[index].path, true)
 
     win.location.href = result
+}
+
+export const onDownloadFile = (index: number, fileList: FileDTO[]) => {
+    apiGetDownloadFileBrower(window, fileList[index].path)
+}
+
+export const copyInfo = async (info: string) => {
+    const { toClipboard } = useClipboard()
+    await toClipboard(info)
+}
+
+export const copyUrl = async (index: number, fileList: FileDTO[]) => {
+    let win = window as any;
+    let result = "http://" + win.globalConfig.serverUrl + ":" + win.globalConfig.serverPort + '/video/' 
+        + Base64.encode(fileList[index].path, true)
+    await copyInfo(result)
 }

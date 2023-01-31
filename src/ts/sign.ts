@@ -20,8 +20,8 @@ export const onSign = (username: string, password: string) => {
 
                 // 登录成功、存储 token、跳转页面、
                 // localStorage.setItem("token", token)
-                Cookies.set("token", res.data.data.token)
-                Cookies.set("userId", res.data.data.userId)
+                Cookies.set("token", res.data.data.token, { expires: 365 })
+                Cookies.set("userId", res.data.data.userId, { expires: 365 })
 
                 router.push("/")
             }

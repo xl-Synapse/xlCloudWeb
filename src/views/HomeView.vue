@@ -11,7 +11,7 @@ import {initHome, onBack, isPCCheck, getServerInfo} from '@/ts/home-init'
 import {onClickdownloadFile, onConfirmDownload} from '@/ts/home-file'
 import {showPic, swichPic} from '@/ts/home-img'
 import {artPlayerConfig} from '@/config/art-player-config'
-import {addEvListenerToPlayer, playVideoAndSub, setSub, putPlayRecord, onPotplayerPlay} from '@/ts/home-video'
+import {addEvListenerToPlayer, playVideoAndSub, setSub, putPlayRecord, onPotplayerPlay, onDownloadFile, copyUrl} from '@/ts/home-video'
 
 getServerInfo() // 刷新当前server配置、
 
@@ -213,6 +213,13 @@ const onNoSub = (ev: any) => {
           <el-button type="primary" @click.stop="onPotplayerPlay(index, globalReactive.fileList)">本地播放</el-button>
         </div>
 
+        <div class="tableCell" v-if="item.type == 2 && globalReactive.isPC">
+          <el-button type="primary" @click.stop="onDownloadFile(index, globalReactive.fileList)">直接下载</el-button>
+        </div>
+
+        <div class="tableCell" v-if="item.type == 2 && !globalReactive.isPC">
+          <el-button type="primary" @click.stop="copyUrl(index, globalReactive.fileList)">Copy</el-button>
+        </div>
         
       </div>
       

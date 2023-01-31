@@ -23,10 +23,11 @@ export function apiGetConvertInfo(param: string) {
 	})
 }
 
-export function apiGetPlayRecord(param: string) {
+export function apiGetPlayRecord(userid: number, path: string) {
 	return httpRequest({
 		url: 'http://' + (window as any).globalConfig.serverUrl + ':' + (window as any).globalConfig.serverPort + '/playrecord/' 
-			+ Base64.encode(param, true),
+			+ userid + '&&'
+			+ Base64.encode(path, true),
 		method: 'get'
 	})
 }

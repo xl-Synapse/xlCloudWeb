@@ -38,7 +38,7 @@ const router = createRouter({
       component: () => import('../views/SignView.vue')
     },
     {
-      path: '/setting',
+      path: '/s',
       name: 'setting',
       // route level code-splitting
       // this generates a separate chunk (About.[hash].js) for this route
@@ -51,11 +51,10 @@ const router = createRouter({
 //导航守卫、路由守卫、路由拦截
 router.beforeEach((to, from, next) =>{
   //验证token,只有存在token的时候，才能跳转到内容页
-  console.log(to);
-  console.log(from);
+
   let token = Cookies.get("token");
-  console.log(token);
-  if(to.path === '/setting' || token || to.path === '/sign') {
+
+  if(to.path === '/s' || token || to.path === '/sign') {
     next();
   } else {
     next("/sign");

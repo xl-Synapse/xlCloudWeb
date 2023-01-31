@@ -160,8 +160,8 @@ export const onBack = (router: any, pathList: PathCache[], globalReactive: Globa
     (window as any).globalConfig.serverUrl = serverUrl;
     (window as any).globalConfig.serverPort = serverPort;
 
-    Cookies.set("serverUrl", serverUrl)
-    Cookies.set("serverPort", serverPort)
+    Cookies.set("serverUrl", serverUrl, { expires: 365 })
+    Cookies.set("serverPort", serverPort, { expires: 365 })
   }
 
   export const getServerInfo = () => {
